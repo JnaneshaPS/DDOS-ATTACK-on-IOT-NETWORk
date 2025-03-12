@@ -1,0 +1,82 @@
+
+        <html>
+        <head>
+            <title>IoT DDoS Detection Explanation</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .feature { margin: 10px 0; }
+                .bar { height: 20px; background-color: #3498db; display: inline-block; }
+                .impact-high { background-color: #e74c3c; }
+                .impact-medium { background-color: #f39c12; }
+                .impact-low { background-color: #2ecc71; }
+            </style>
+        </head>
+        <body>
+            <h2>Explanation for Attack Classification</h2>
+            <p>Confidence: 63.34%</p>
+            <div>
+        
+            <div class="feature">
+                <span>packet_rate: 0.775</span>
+                <div class="bar impact-medium" style="width: 77px;"></div>
+                <span>Impact: 0.0926</span>
+            </div>
+            
+            <div class="feature">
+                <span>packet_size: 0.516</span>
+                <div class="bar impact-medium" style="width: 51px;"></div>
+                <span>Impact: 0.0827</span>
+            </div>
+            
+            <div class="feature">
+                <span>entropy: 0.704</span>
+                <div class="bar impact-high" style="width: 70px;"></div>
+                <span>Impact: 0.1109</span>
+            </div>
+            
+            <div class="feature">
+                <span>tcp_flags: 0.786</span>
+                <div class="bar impact-medium" style="width: 78px;"></div>
+                <span>Impact: 0.0884</span>
+            </div>
+            
+            <div class="feature">
+                <span>udp_length: 0.664</span>
+                <div class="bar impact-medium" style="width: 66px;"></div>
+                <span>Impact: 0.0822</span>
+            </div>
+            
+            <div class="feature">
+                <span>dest_port_diversity: 0.657</span>
+                <div class="bar impact-high" style="width: 65px;"></div>
+                <span>Impact: 0.1539</span>
+            </div>
+            
+            <div class="feature">
+                <span>src_port_diversity: 0.140</span>
+                <div class="bar impact-high" style="width: 13px;"></div>
+                <span>Impact: 0.1182</span>
+            </div>
+            
+            <div class="feature">
+                <span>protocol_diversity: 0.720</span>
+                <div class="bar impact-medium" style="width: 71px;"></div>
+                <span>Impact: 0.0824</span>
+            </div>
+            
+            <div class="feature">
+                <span>ttl_value: 0.039</span>
+                <div class="bar impact-medium" style="width: 3px;"></div>
+                <span>Impact: 0.0870</span>
+            </div>
+            
+            <div class="feature">
+                <span>window_size: 0.465</span>
+                <div class="bar impact-high" style="width: 46px;"></div>
+                <span>Impact: 0.1017</span>
+            </div>
+            
+            </div>
+        </body>
+        </html>
+        
