@@ -499,8 +499,8 @@ def simulate_traffic():
         # Analyze traffic (will be attack)
         prediction, confidence = analyze_traffic(source_ip, features)
         
-        # Generate a realistic confidence value between 85% and 99%
-        attack_confidence = round(random.uniform(0.85, 0.99), 2)
+        # Generate a more realistic confidence value between 85% and 99% for attacks
+        realistic_confidence = round(random.uniform(0.85, 0.98), 2)
         
         # Add to detections list
         detections.append({
@@ -508,7 +508,7 @@ def simulate_traffic():
             'ip': source_ip,
             'is_attack': True,
             'type': 'ATTACK',
-            'confidence': attack_confidence,
+            'confidence': realistic_confidence,
             'packet_rate': float(features[0])  # First feature is packet rate
         })
         
