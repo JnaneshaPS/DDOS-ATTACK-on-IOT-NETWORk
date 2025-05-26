@@ -1,0 +1,85 @@
+
+        <html>
+        <head>
+            <title>DDoS Attack Alert - 10.0.0.3</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .alert { background-color: #ffebee; border-left: 5px solid #f44336; padding: 15px; margin-bottom: 20px; }
+                .feature { margin: 5px 0; }
+                .high { color: #d32f2f; }
+                .medium { color: #f57c00; }
+                .low { color: #388e3c; }
+                img { max-width: 100%; height: auto; margin: 15px 0; }
+                table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+                th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+                th { background-color: #f2f2f2; }
+                tr:hover { background-color: #f5f5f5; }
+                .mitigation { background-color: #e8f5e9; border-left: 5px solid #4caf50; padding: 15px; margin-top: 20px; }
+                .controls { margin-top: 20px; }
+                .button { padding: 10px 15px; background-color: #e53935; color: white; border: none; cursor: pointer; }
+            </style>
+        </head>
+        <body>
+            <h1>DDoS Attack Detection Alert</h1>
+            
+            <div class="alert">
+                <h2>Attack Detected from 10.0.0.3</h2>
+                <p>Timestamp: 2025-05-26 17:23:13</p>
+                <p>Confidence: 94.00%</p>
+            </div>
+            
+            <h2>Explanation (Why this was classified as an attack)</h2>
+            <img src="../static/xai/alert_10_0_0_3_20250526_172313_features.png" alt="Feature Importance">
+            
+            <h3>Top Contributing Factors:</h3>
+            <div>
+        
+                <div class="feature">
+                    <strong class="low">Protocol Count</strong>: 
+                    Value 0.000 (Contribution: 0.003)
+                </div>
+            
+                <div class="feature">
+                    <strong class="low">Average TTL</strong>: 
+                    Value 0.000 (Contribution: 0.001)
+                </div>
+            
+                <div class="feature">
+                    <strong class="low">Packet Size Standard Deviation</strong>: 
+                    Value 0.000 (Contribution: 0.001)
+                </div>
+            
+            </div>
+            
+            <h2>Traffic Pattern Analysis</h2>
+            <img src="../static/xai/alert_10_0_0_3_20250526_172313_pattern.png" alt="Traffic Pattern">
+            
+            <h3>Key Traffic Statistics:</h3>
+            <table>
+                <tr><th>Metric</th><th>Value</th><th>Typical Normal Value</th></tr>
+                <tr><td>Packet Rate</td><td>947.00 packets/sec</td><td>&lt;50 packets/sec</td></tr>
+                <tr><td>Average Packet Size</td><td>41.00 bytes</td><td>~500-1500 bytes</td></tr>
+                <tr><td>Packet Size Entropy</td><td>0.17</td><td>&gt;0.6 (more diverse)</td></tr>
+                <tr><td>Source Ports Count</td><td>4320</td><td>&lt;100 ports</td></tr>
+                <tr><td>Protocol Count</td><td>0</td><td>2-4 protocols</td></tr>
+            </table>
+            
+            <h2>Recommended Actions</h2>
+            <ul>
+                <li>Block traffic from 10.0.0.3 immediately</li>
+                <li>Investigate other devices on the network for similar patterns</li>
+                <li>Check if this is part of a larger attack campaign</li>
+            </ul>
+            
+            <div class="mitigation">
+                <h3>Mitigation Status</h3>
+                <p>IP 10.0.0.3 has been automatically blocked</p>
+                <p>Duration: 3600 seconds (1 hour)</p>
+            </div>
+
+            <div class="controls">
+                <a href="/dashboard"><button class="button">Back to Dashboard</button></a>
+            </div>
+        </body>
+        </html>
+        

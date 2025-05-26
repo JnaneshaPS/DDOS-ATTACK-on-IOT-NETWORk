@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IoT DDoS Protection Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+        .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .row { display: flex; flex-wrap: wrap; margin: -10px; }
+        .card { background-color: white; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; margin: 10px; flex-grow: 1; }
+        .stats { display: flex; flex-wrap: wrap; }
+        .stat-box { background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 10px; min-width: 150px; text-align: center; }
+        .stat-box h3 { margin-top: 0; color: #555; }
+        .stat-box h2 { margin-bottom: 0; color: #0d47a1; }
+        .chart-container { height: 300px; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        tr:hover { background-color: #f5f5f5; }
+        .attack { color: #d32f2f; }
+        .normal { color: #388e3c; }
+        .btn { padding: 8px 16px; background-color: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background-color: #1a252f; }
+        .btn-danger { background-color: #d32f2f; }
+        .btn-danger:hover { background-color: #b71c1c; }
+        .alert-list { max-height: 400px; overflow-y: auto; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>IoT DDoS Protection System with XAI</h1>
+        <p>Lightweight ML Detection with Explainable AI</p>
+    </div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="card" style="flex-basis: 100%;">
+                <h2>System Overview</h2>
+                <div class="stats">
+                    <div class="stat-box">
+                        <h3>Total Packets</h3>
+                        <h2 id="total-packets">0</h2>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Attack Packets</h3>
+                        <h2 id="attack-count">0</h2>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Normal Packets</h3>
+                        <h2 id="normal-count">0</h2>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Blocked IPs</h3>
+                        <h2 id="blocked-count">0</h2>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="simulateTraffic(10)">Simulate Traffic (10 packets)</button>
+                    <button class="btn" onclick="simulateTraffic(50)">Simulate Traffic (50 packets)</button>
+                    <button class="btn" onclick="generateExplanation()">Generate XAI Example</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="card" style="flex-basis: calc(50% - 20px);">
+                <h2>Recent Detections</h2>
+                <table id="recent-detections">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Source IP</th>
+                            <th>Type</th>
+                            <th>Confidence</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Detections will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" style="flex-basis: calc(50% - 20px);">
+                <h2>Feature Importance</h2>
+                <div class="chart-container">
+                    <img src="/static/feature_importance.png" alt="Feature Importance" style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="card" style="flex-basis: calc(50% - 20px);">
+                <h2>Blocked IPs</h2>
+                <table id="blocked-ips">
+                    <thead>
+                        <tr>
+                            <th>IP Address</th>
+                            <th>Blocked At</th>
+                            <th>Duration</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Blocked IPs will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" style="flex-basis: calc(50% - 20px);">
+                <h2>XAI Alerts</h2>
+                <div class="alert-list">
+                    <table id="xai-alerts">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Alert</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Alerts will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load initial data
+        window.onload = function() {
+            updateStats();
+            updateRecentDetections();
+            updateBlockedIPs();
+            updateAlerts();
+        };
+        
+        // Update statistics
+        function updateStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-packets').textContent = data.total_packets;
+                    document.getElementById('attack-count').textContent = data.attack_count;
+                    document.getElementById('normal-count').textContent = data.normal_count;
+                    document.getElementById('blocked-count').textContent = data.blocked_count;
+                });
+        }
+        
+        // Update recent detections
+        function updateRecentDetections() {
+            fetch('/api/recent_detections')
+                .then(response => response.json())
+                .then(detections => {
+                    const tbody = document.querySelector('#recent-detections tbody');
+                    tbody.innerHTML = '';
+                    
+                    detections.forEach(d => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${d.timestamp}</td>
+                            <td>${d.source_ip}</td>
+                            <td class="${d.is_attack ? 'attack' : 'normal'}">${d.is_attack ? 'ATTACK' : 'NORMAL'}</td>
+                            <td>${(d.confidence * 100).toFixed(1)}%</td>
+                            <td>${d.is_attack ? `<button class="btn btn-danger btn-sm" onclick="blockIP('${d.source_ip}')">Block</button>` : '-'}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                });
+        }
+        
+        // Update blocked IPs
+        function updateBlockedIPs() {
+            fetch('/api/blocked')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector('#blocked-ips tbody');
+                    tbody.innerHTML = '';
+                    
+                    for (const ip in data) {
+                        const info = data[ip];
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${ip}</td>
+                            <td>${info.blocked_at}</td>
+                            <td>${info.duration} seconds</td>
+                            <td>${info.reason}</td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+                });
+        }
+        
+        // Update alerts
+        function updateAlerts() {
+            fetch('/api/alerts')
+                .then(response => response.json())
+                .then(alerts => {
+                    const tbody = document.querySelector('#xai-alerts tbody');
+                    tbody.innerHTML = '';
+                    
+                    alerts.forEach(alert => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${alert.created}</td>
+                            <td><a href="${alert.path}" target="_blank">${alert.filename}</a></td>
+                            <td><a href="${alert.path}" target="_blank"><button class="btn btn-sm">View</button></a></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                });
+        }
+        
+        // Simulate traffic
+        function simulateTraffic(samples) {
+            fetch(`/api/simulate?samples=${samples}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateStats();
+                        updateRecentDetections();
+                        updateBlockedIPs();
+                        updateAlerts();
+                    }
+                });
+        }
+        
+        // Generate XAI example
+        function generateExplanation() {
+            fetch('/api/explain')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Explanation generated with confidence ${data.confidence.toFixed(2)}`);
+                        updateStats();
+                        updateRecentDetections();
+                        updateBlockedIPs();
+                        updateAlerts();
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                });
+        }
+        
+        // Block IP
+        function blockIP(ip) {
+            fetch('/api/mitigate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ip: ip })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        updateBlockedIPs();
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
