@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, flash
+from flask import Flask, render_template, jsonify, request, send_from_directory, redirect, flash, Response
 import joblib
 import numpy as np
 import requests
@@ -371,9 +371,9 @@ def index():
                           latest_xai=latest_xai,
                           num_features=num_features)
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
+@app.route('/docker')
+def docker_page():
+    return render_template('docker_status.html')
 
 @app.route('/api/detections', methods=['GET'])
 def get_detections():
@@ -957,6 +957,77 @@ def view_xai():
         flash("XAI explanation not found")
         return redirect('/')
 
+@app.route('/api/report_attack', methods=['POST'])
+def report_attack():
+    """Endpoint to receive attack reports from docker_monitor.py"""
+    data = request.json
+    
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    # Add to detections list
+    detections.append({
+        'timestamp': data.get('timestamp', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+        'source_ip': data.get('source_ip', 'unknown'),
+        'is_attack': True,
+        'type': 'DOCKER_ATTACK',
+        'confidence': data.get('confidence', 0.95),
+        'packet_rate': data.get('packet_rate', 1000)
+    })
+    
+    # Block the IP if it's an attack
+    if data.get('is_attack', False) and data.get('confidence', 0) > 0.75:
+        block_ip(data.get('source_ip', 'unknown'))
+        
+    # Create an alert
+    alerts.append({
+        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'message': f"Docker DDoS Attack Detected from {data.get('source_ip', 'unknown')} targeting {data.get('target_name', 'unknown device')}",
+        'type': 'attack',
+        'source': data.get('source_ip', 'unknown'),
+        'details': f"Packet rate: {data.get('packet_rate', 0)} packets/sec"
+    })
+    
+    # Update XAI visualization
+    update_feature_importance()
+    
+    return jsonify({"status": "success", "message": "Attack reported successfully"})
+
+@app.route('/api/docker/status', methods=['GET'])
+def docker_status():
+    """Check the status of Docker containers"""
+    try:
+        import subprocess
+        
+        # Get running containers
+        cmd_output = subprocess.check_output("docker ps --format \"{{.Names}} ({{.Status}})\"", shell=True, text=True)
+        containers = cmd_output.strip().split('\n')
+        
+        # Get container IPs
+        ip_cmd = subprocess.check_output(
+            "docker inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q)",
+            shell=True, text=True
+        )
+        
+        ips = {}
+        for line in ip_cmd.strip().split('\n'):
+            if ' - ' in line:
+                name, ip = line.strip().split(' - ')
+                name = name.strip('/')
+                ips[name] = ip
+        
+        return jsonify({
+            "status": "success",
+            "containers": containers,
+            "container_ips": ips,
+            "message": "Docker containers running"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Error checking Docker status: {str(e)}"
+        })
+
 # Create required directories and templates
 def setup_environment():
     """Setup required directories and templates before app starts"""
@@ -985,7 +1056,11 @@ def setup_environment():
 # Call setup at startup
 if __name__ == "__main__":
     setup_environment()
-    # Generate initial feature importance visualization
-    generate_feature_importance_plot()
-    # Run the Flask application
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    print("\n============================================")
+    print("IoT DDoS Detection Dashboard Running")
+    print("============================================")
+    print("Access the dashboard at: http://localhost:8080")
+    print("To monitor Docker traffic: python docker_monitor.py")
+    print("To simulate attacks: http://localhost:8080/api/simulate?samples=10")
+    print("============================================\n")
+    app.run(host='0.0.0.0', port=8080, debug=True)

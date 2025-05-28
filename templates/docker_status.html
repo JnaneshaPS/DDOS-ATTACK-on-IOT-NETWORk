@@ -1,0 +1,147 @@
+{% extends "base_template.html" %}
+{% block content %}
+<div class="container mt-3">
+    <h2>Docker Container Status</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            IoT Network Containers
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Container Name</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody id="container-list">
+                        <tr>
+                            <td colspan="4" class="text-center">Loading container information...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    Monitoring Actions
+                </div>
+                <div class="card-body">
+                    <button id="start-monitor" class="btn btn-danger">Start Docker Traffic Monitor</button>
+                    <button id="refresh-status" class="btn btn-secondary ml-2">Refresh Status</button>
+                    <div class="mt-3">
+                        <div class="form-group">
+                            <label for="monitor-duration">Monitoring Duration (seconds)</label>
+                            <input type="number" class="form-control" id="monitor-duration" value="60">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    Docker Network Traffic
+                </div>
+                <div class="card-body">
+                    <div id="docker-traffic-status">
+                        <p>Status: <span id="monitoring-status">Not monitoring</span></p>
+                        <p>Last check: <span id="last-check-time">Never</span></p>
+                    </div>
+                    <div class="alert alert-info">
+                        Use the Docker traffic monitor to detect real DDoS attacks from Docker containers.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Fetch container status initially
+    updateContainerStatus();
+    
+    // Set up refresh button
+    $("#refresh-status").click(function() {
+        updateContainerStatus();
+    });
+    
+    // Set up monitor button
+    $("#start-monitor").click(function() {
+        startDockerMonitor();
+    });
+    
+    // Periodically refresh
+    setInterval(updateContainerStatus, 10000);
+});
+
+function updateContainerStatus() {
+    $.ajax({
+        url: '/api/docker/status',
+        method: 'GET',
+        success: function(data) {
+            if(data.status === "success") {
+                updateContainerTable(data.containers, data.container_ips);
+                $("#last-check-time").text(new Date().toLocaleTimeString());
+            } else {
+                $("#container-list").html('<tr><td colspan="4" class="text-danger">Error: ' + data.message + '</td></tr>');
+            }
+        },
+        error: function() {
+            $("#container-list").html('<tr><td colspan="4" class="text-danger">Error connecting to server</td></tr>');
+        }
+    });
+}
+
+function updateContainerTable(containers, ips) {
+    let html = '';
+    
+    if(containers.length === 0) {
+        html = '<tr><td colspan="4" class="text-center">No containers found</td></tr>';
+    } else {
+        containers.forEach(function(container) {
+            const name = container.split(' ')[0];
+            const status = container.substring(container.indexOf('(') + 1, container.indexOf(')'));
+            const ip = ips[name] || 'Unknown';
+            const role = name.includes('attacker') ? 'Attacker' : 
+                         name.includes('iot-device') ? 'IoT Device' : 'Other';
+            
+            html += '<tr>';
+            html += '<td>' + name + '</td>';
+            html += '<td>' + ip + '</td>';
+            html += '<td>' + status + '</td>';
+            html += '<td>' + role + '</td>';
+            html += '</tr>';
+        });
+    }
+    
+    $("#container-list").html(html);
+}
+
+function startDockerMonitor() {
+    const duration = $("#monitor-duration").val();
+    $("#monitoring-status").text("Starting monitor process...");
+    
+    // In a real implementation, this would start the Python script
+    // For demo purposes, we'll just show a message
+    alert("Starting Docker monitor with command: python docker_monitor.py -d " + duration);
+    
+    $("#monitoring-status").text("Monitor started for " + duration + " seconds");
+    $("#start-monitor").prop("disabled", true);
+    
+    setTimeout(function() {
+        $("#monitoring-status").text("Monitoring complete");
+        $("#start-monitor").prop("disabled", false);
+    }, duration * 1000);
+}
+</script>
+{% endblock %}
